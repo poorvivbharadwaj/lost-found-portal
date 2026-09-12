@@ -19,8 +19,6 @@ export default function ItemCard({ item, type, onClick }) {
   const isLost = type === 'lost';
   const accentColor = isLost ? 'var(--lost)' : 'var(--found)';
   const accentBg = isLost ? 'var(--lost-bg)' : 'var(--found-bg)';
-  const borderHover = isLost ? 'rgba(185,28,28,0.3)' : 'rgba(22,101,52,0.3)';
-
   const name = item.itemName || (isLost ? 'Lost Item' : 'Found Item');
   const desc = item.description;
   const reportedAt = item.createdAt;

@@ -85,11 +85,6 @@ const REJECTED_KEYWORDS = [
   'boy', 'girl', 'animal', 'dog', 'cat', 'bird', 'pet', 'food',
   'meal', 'drink', 'meme', 'screenshot of person',
 ];
-const VALID_KEYWORDS = [
-  'card', 'book', 'phone', 'laptop', 'electronics', 'document',
-  'paper', 'object', 'item', 'stationery', 'key', 'wallet', 'bag',
-];
-
 export const validateImageTags = (tags = []) => {
   const normalized = tags.map(t => t.toLowerCase());
   const rejected = normalized.filter(t => REJECTED_KEYWORDS.some(k => t.includes(k)));
