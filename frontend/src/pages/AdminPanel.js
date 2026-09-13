@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import PossibleMatchesPanel from '../components/admin/PossibleMatchesPanel';
+import ChangeCredentialsModal from '../components/admin/ChangeCredentialsModal';
+import OfficeSettingsModal from '../components/admin/OfficeSettingsModal';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 import Sidebar from '../components/layout/Sidebar';
 import { CATEGORIES } from '../utils/helpers';
@@ -35,6 +37,8 @@ export default function AdminPanel() {
   const [editForm, setEditForm] = useState({});
   const [confirmState, setConfirmState] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [officeSettingsOpen, setOfficeSettingsOpen] = useState(false);
   const [editImageFile, setEditImageFile] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState('newest');
@@ -103,6 +107,13 @@ export default function AdminPanel() {
 
   const handleEditChange = (key, value) => {
     setEditForm(prev => ({ ...prev, [key]: value }));
+  };
+
+  const copyToClipboard = (value, label) => {
+    if (!value) return;
+    navigator.clipboard?.writeText(value)
+      .then(() => toast.success(`${label} copied`))
+      .catch(() => toast.error('Copy failed, please copy manually'));
   };
 
   const handleSaveEdit = async () => {
@@ -253,7 +264,34 @@ export default function AdminPanel() {
       color: '#f87171',
       border: '1px solid rgba(239,68,68,0.25)',
       fontSize: 13,
+      fontWeight: 600,
       cursor: 'pointer',
+      transition: 'all 0.18s ease',
+    },
+    archiveBtn: {
+      padding: '7px 16px',
+      borderRadius: 8,
+      background: 'transparent',
+      color: 'var(--text-muted)',
+      border: '1px solid var(--border-bright)',
+      fontSize: 13,
+      fontWeight: 600,
+      cursor: 'pointer',
+      transition: 'all 0.18s ease',
+    },
+    settingsBtn: {
+      padding: '7px 16px',
+      borderRadius: 8,
+      background: 'var(--gold-bg)',
+      color: 'var(--accent)',
+      border: '1px solid var(--border-bright)',
+      fontSize: 13,
+      fontWeight: 600,
+      cursor: 'pointer',
+      transition: 'all 0.18s ease',
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 6,
     },
     backBtn: {
       padding: '7px 16px',
@@ -359,7 +397,7 @@ export default function AdminPanel() {
           >
             ☰
           </button>
-          <img src="/logos/lf-logo-circle.png" alt="SNPSU" style={{ width: 30, height: 30, objectFit: 'contain', borderRadius: 7, flexShrink: 0 }} />
+          <img className="logo-hover" src="/logos/lf-logo-circle.png" alt="SNPSU" style={{ width: 30, height: 30, objectFit: 'contain', borderRadius: 7, flexShrink: 0 }} />
           <span style={styles.navTitle}>Admin Dashboard</span>
         </div>
         <div style={styles.navRight}>
@@ -368,6 +406,20 @@ export default function AdminPanel() {
           </span>
           <button style={styles.archiveBtn} onClick={() => navigate('/admin/archive')}>
             Archive
+          </button>
+          <button
+            style={styles.settingsBtn}
+            onClick={() => setSettingsOpen(true)}
+            aria-label="Open admin settings"
+          >
+            ⚙️ Settings
+          </button>
+          <button
+            style={styles.settingsBtn}
+            onClick={() => setOfficeSettingsOpen(true)}
+            aria-label="Edit Campus Office contact information"
+          >
+            🏫 Office Info
           </button>
           <button style={styles.logoutBtn} onClick={handleLogout}>
             Logout
@@ -380,8 +432,10 @@ export default function AdminPanel() {
 
       <div style={styles.content}>
 
+        <p className="section-label" style={{ marginBottom: 10 }}>Dashboard Overview</p>
+
         <div style={styles.statsGrid}>
-          <div style={styles.statCard}>
+          <div style={styles.statCard} className="glass">
             <div style={{ fontSize: 28, color: '#B91C1C', fontWeight: 800 }}>
               {stats ? stats.totalLost : 0}
             </div>
@@ -389,7 +443,7 @@ export default function AdminPanel() {
               Total Lost
             </div>
           </div>
-          <div style={styles.statCard}>
+          <div style={styles.statCard} className="glass">
             <div style={{ fontSize: 28, color: '#166534', fontWeight: 800 }}>
               {stats ? stats.totalFound : 0}
             </div>
@@ -397,7 +451,7 @@ export default function AdminPanel() {
               Total Found
             </div>
           </div>
-          <div style={styles.statCard}>
+          <div style={styles.statCard} className="glass">
             <div style={{ fontSize: 28, color: '#94a3b8', fontWeight: 800 }}>
               {stats ? stats.pendingLost : 0}
             </div>
@@ -405,7 +459,7 @@ export default function AdminPanel() {
               Pending Lost
             </div>
           </div>
-          <div style={styles.statCard}>
+          <div style={styles.statCard} className="glass">
             <div style={{ fontSize: 28, color: '#94a3b8', fontWeight: 800 }}>
               {stats ? stats.pendingFound : 0}
             </div>
@@ -413,7 +467,7 @@ export default function AdminPanel() {
               Pending Found
             </div>
           </div>
-          <div style={styles.statCard}>
+          <div style={styles.statCard} className="glass">
             <div style={{ fontSize: 28, color: '#6D28D9', fontWeight: 800 }}>
               {stats ? stats.matchedItems : 0}
             </div>
@@ -421,7 +475,7 @@ export default function AdminPanel() {
               Matches
             </div>
           </div>
-          <div style={styles.statCard}>
+          <div style={styles.statCard} className="glass">
             <div style={{ fontSize: 28, color: '#f97316', fontWeight: 800 }}>
               {stats ? ((stats.archivedLost || 0) + (stats.archivedFound || 0)) : 0}
             </div>
@@ -430,6 +484,8 @@ export default function AdminPanel() {
             </div>
           </div>
         </div>
+
+        <p className="section-label" style={{ marginBottom: 10 }}>Manage Reports</p>
 
         <div style={styles.tabBar}>
           <span style={{ fontSize: 12, color: 'var(--text-dim)', marginRight: 4 }}>
@@ -542,7 +598,8 @@ export default function AdminPanel() {
         <>
         {loading ? (
           <div style={{ textAlign: 'center', padding: 48 }}>
-            <p style={{ color: 'var(--text-muted)', fontSize: 15 }}>Loading...</p>
+            <div className="spinner" style={{ width: 28, height: 28, border: '3px solid var(--border-bright)', borderTopColor: 'var(--accent)', borderRadius: '50%', margin: '0 auto 12px' }} />
+            <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Loading items…</p>
           </div>
         ) : items.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 48 }}>
@@ -554,7 +611,7 @@ export default function AdminPanel() {
         ) : (
           items.map(function(item) {
             return (
-              <div key={item._id} style={styles.itemCard}>
+              <div key={item._id} style={{ ...styles.itemCard, cursor: 'default' }} className="item-card">
 
                 <div style={{
                   width: 60,
@@ -590,35 +647,14 @@ export default function AdminPanel() {
                     marginBottom: 6,
                     flexWrap: 'wrap',
                   }}>
-                    <span style={{
-                      padding: '2px 10px',
-                      borderRadius: 999,
-                      fontSize: 11,
-                      fontWeight: 600,
-                      background: activeType === 'lost'
-                        ? 'rgba(185,28,28,0.1)'
-                        : 'rgba(22,101,52,0.1)',
-                      color: activeType === 'lost' ? '#B91C1C' : '#166534',
-                    }}>
+                    <span className={activeType === 'lost' ? 'badge badge-lost' : 'badge badge-found'}>
                       {activeType === 'lost' ? 'Lost' : 'Found'}
                     </span>
-                    <span style={{
-                      padding: '2px 10px',
-                      borderRadius: 999,
-                      fontSize: 11,
-                      background: 'rgba(100,116,139,0.12)',
-                      color: '#94a3b8',
-                    }}>
+                    <span className={`badge badge-${item.status || 'pending'}`}>
                       {item.status || 'pending'}
                     </span>
                     {item.matched && (
-                      <span style={{
-                        padding: '2px 10px',
-                        borderRadius: 999,
-                        fontSize: 11,
-                        background: 'rgba(139,92,246,0.12)',
-                        color: '#a78bfa',
-                      }}>
+                      <span className="badge badge-match">
                         Matched
                       </span>
                     )}
@@ -642,12 +678,11 @@ export default function AdminPanel() {
                     {item.description}
                   </div>
 
-                  {activeType === 'lost' && (
-                    <div style={{ fontSize: 11, color: 'var(--text-dim)' }}>
-                      {item.email && '✉️ ' + item.email}
-                      {item.phone && '  📞 ' + item.phone}
-                    </div>
-                  )}
+                  <ReporterContactBox
+                    email={activeType === 'lost' ? item.email : item.contactEmail}
+                    phone={activeType === 'lost' ? item.phone : item.contactPhone}
+                    onCopy={copyToClipboard}
+                  />
 
                   <div style={{ marginTop: 8 }}>
                       <button
@@ -656,7 +691,7 @@ export default function AdminPanel() {
                         openEdit(item);
                       }}
                     >
-                      Edit
+                      ✏️ Edit
                     </button>
                     {item.status !== 'approved' && item.status !== 'archived' && item.status !== 'resolved' && (
                       <button
@@ -665,7 +700,7 @@ export default function AdminPanel() {
                           handleApprove(item._id, activeType);
                         }}
                       >
-                        Approve
+                        ✅ Approve
                       </button>
                     )}
                     {item.status === 'pending' && (
@@ -675,7 +710,7 @@ export default function AdminPanel() {
                           handleReject(item._id, activeType);
                         }}
                       >
-                        Reject
+                        ❌ Reject
                       </button>
                     )}
                     {item.status !== 'archived' && item.status !== 'resolved' && (
@@ -685,7 +720,7 @@ export default function AdminPanel() {
                           handleArchive(item._id, activeType);
                         }}
                       >
-                        Archive
+                        🗄️ Archive
                       </button>
                     )}
                     <button
@@ -694,7 +729,7 @@ export default function AdminPanel() {
                         handleDelete(item._id, activeType);
                       }}
                     >
-                      Delete
+                      🗑️ Delete
                     </button>
                   </div>
                 </div>
@@ -826,8 +861,75 @@ export default function AdminPanel() {
           />
         )}
 
+        {settingsOpen && (
+          <ChangeCredentialsModal
+            onClose={() => setSettingsOpen(false)}
+            onCredentialsChanged={() => {
+              setSettingsOpen(false);
+              logout();
+              navigate('/admin/login', { replace: true });
+            }}
+          />
+        )}
+
+        {officeSettingsOpen && (
+          <OfficeSettingsModal onClose={() => setOfficeSettingsOpen(false)} />
+        )}
+
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
+      </div>
+    </div>
+  );
+}
+
+/**
+ * "Reporter Contact Details" — admin-only view of a report's private email
+ * and phone. This data is only ever shown here, inside the authenticated
+ * Admin Dashboard; the backend never returns it through any public API.
+ */
+function ReporterContactBox({ email, phone, onCopy }) {
+  return (
+    <div style={{
+      marginTop: 4,
+      marginBottom: 4,
+      background: 'var(--gold-bg)',
+      border: '1px solid var(--border-bright)',
+      borderRadius: 8,
+      padding: '8px 10px',
+    }}>
+      <p style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-dim)', margin: '0 0 6px' }}>
+        🔒 Reporter Contact Details
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <span style={{ fontSize: 11.5, color: email ? 'var(--text-primary)' : 'var(--text-dim)', fontStyle: email ? 'normal' : 'italic' }}>
+            ✉️ {email || 'Not provided'}
+          </span>
+          {email && (
+            <button
+              type="button"
+              onClick={() => onCopy(email, 'Email')}
+              style={{ fontSize: 10, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--border-bright)', background: 'transparent', color: 'var(--accent)', cursor: 'pointer', flexShrink: 0 }}
+            >
+              Copy
+            </button>
+          )}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <span style={{ fontSize: 11.5, color: phone ? 'var(--text-primary)' : 'var(--text-dim)', fontStyle: phone ? 'normal' : 'italic' }}>
+            📞 {phone || 'Not provided'}
+          </span>
+          {phone && (
+            <button
+              type="button"
+              onClick={() => onCopy(phone, 'Phone')}
+              style={{ fontSize: 10, padding: '3px 8px', borderRadius: 6, border: '1px solid var(--border-bright)', background: 'transparent', color: 'var(--accent)', cursor: 'pointer', flexShrink: 0 }}
+            >
+              Copy
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

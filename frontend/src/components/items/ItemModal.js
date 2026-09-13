@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { formatDate, formatDateTime, getCategoryIcon, getCategoryLabel } from '../../utils/helpers';
+import { getOfficeInfo } from '../../utils/api';
+import ValidProofNotice from '../common/ValidProofNotice';
+
+const DEFAULT_OFFICE = {
+  officeLocation: 'Room No 405, Campus Office',
+  officeEmail: 'lostfound@college.edu',
+  officePhone: '+91-XXXXXXXXXX',
+};
 
 const CloseIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -9,6 +17,17 @@ const CloseIcon = () => (
 
 export default function ItemModal({ item, type, onClose }) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [office, setOffice] = useState(DEFAULT_OFFICE);
+
+  useEffect(() => {
+    let cancelled = false;
+    getOfficeInfo()
+      .then(res => {
+        if (!cancelled && res.data?.office) setOffice(res.data.office);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     const handleKey = (e) => {
@@ -25,7 +44,10 @@ export default function ItemModal({ item, type, onClose }) {
 
   const shareUrl = window.location.origin;
   const shareTitle = item.itemName || (isLost ? 'Lost Item' : 'Found Item');
-  const shareText = `${shareTitle}\n\n${item.description}\n\n${isLost ? `Contact: ${item.email || item.phone || 'N/A'}` : `Contact: ${item.contactEmail || item.contactPhone || 'N/A'}` }\n\nView this portal: ${shareUrl}`;
+  // Reporter contact details are private and are never returned by the
+  // public API, so sharing/contact text always points to the public
+  // Campus Office information instead.
+  const shareText = `${shareTitle}\n\n${item.description}\n\nContact: ${office.officeEmail} / ${office.officePhone} (${office.officeLocation})\n\nView this portal: ${shareUrl}`;
 
   const handleShareClick = (method) => {
     const encoded = encodeURIComponent(shareText);
@@ -116,24 +138,24 @@ export default function ItemModal({ item, type, onClose }) {
             <DetailBox icon="🏷️" label="Status" value={item.matched ? 'Match Found!' : (item.approved ? 'Approved' : 'Pending')} />
           </div>
 
-          {/* Contact Info */}
-          <div style={{ background: isLost ? 'var(--lost-bg)' : 'var(--found-bg)', borderRadius: 12, padding: 16, border: `1px solid ${isLost ? 'rgba(185,28,28,0.2)' : 'rgba(22,101,52,0.2)'}` }}>
-            <p style={{ fontSize: 11, color: isLost ? 'var(--lost)' : 'var(--found)', fontFamily: "'Inter'", textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Contact Information</p>
+          {/* Campus Office Info — public item pages show only official
+              office contact details, never the reporter's private email
+              or phone (those are admin-only, in the protected dashboard). */}
+          <div style={{ background: 'var(--gold-bg)', borderRadius: 12, padding: 16, border: '1px solid var(--border-bright)' }}>
+            <p style={{ fontSize: 11, color: 'var(--text-primary)', fontFamily: "'Inter'", textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10, fontWeight: 700 }}>
+              🏫 Campus Lost &amp; Found Office
+            </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {isLost ? (
-                <>
-                  {item.email && <ContactRow icon="✉️" value={item.email} />}
-                  {item.phone && <ContactRow icon="📞" value={item.phone} />}
-                </>
-              ) : (
-                <>
-                  <ContactRow icon="📍" value={item.foundLocation || 'Room No 405'} />
-                  <ContactRow icon="✉️" value={item.contactEmail || 'lostfound@college.edu'} />
-                  <ContactRow icon="📞" value={item.contactPhone || '+91-XXXXXXXXXX'} />
-                </>
-              )}
+              <ContactRow icon="📍" value={office.officeLocation} />
+              <ContactRow icon="✉️" value={office.officeEmail} />
+              <ContactRow icon="📞" value={office.officePhone} />
             </div>
           </div>
+
+          <div style={{ marginTop: 14 }}>
+            <ValidProofNotice />
+          </div>
+
 
           <div style={{ marginTop: 18, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
             {['whatsapp', 'email', 'instagram', 'copy'].map(method => {

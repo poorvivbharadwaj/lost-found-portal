@@ -140,6 +140,7 @@ export default function HomePage() {
         <div style={{ maxWidth: 720, margin: '0 auto' }}>
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
             <img
+              className="logo-hover"
               src="/logos/lf-logo-circle.png"
               alt="Lost & Found Campus Portal"
               style={{ width: 'min(180px, 40vw)', height: 'min(180px, 40vw)', objectFit: 'contain' }}

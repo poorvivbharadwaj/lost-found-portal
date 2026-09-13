@@ -22,6 +22,7 @@ export default function SplashScreen({ fadingOut }) {
       }}
     >
       <img
+        className="logo-hover"
         src="/logos/lf-logo-circle.png"
         alt="Lost & Found Campus Portal"
         style={{

@@ -184,7 +184,7 @@ export default function AdminArchive() {
           >
             ☰
           </button>
-          <img src="/logos/lf-logo-circle.png" alt="SNPSU" style={{ width: 30, height: 30, objectFit: 'contain', borderRadius: 7, flexShrink: 0 }} />
+          <img className="logo-hover" src="/logos/lf-logo-circle.png" alt="SNPSU" style={{ width: 30, height: 30, objectFit: 'contain', borderRadius: 7, flexShrink: 0 }} />
           <span style={styles.navTitle}>Admin Archive</span>
         </div>
         <div style={styles.navRight}>

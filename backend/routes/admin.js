@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const Fuse = require('fuse.js');
-const { LostItem, FoundItem, PossibleMatch } = require('../models');
+const bcrypt = require('bcryptjs');
+const { LostItem, FoundItem, PossibleMatch, Admin, Settings } = require('../models');
+const { isValidEmail } = require('../utils/validators');
 const authMiddleware = require('../middleware/auth');
 const { sendApprovalEmail, sendRejectionEmail, sendMatchEmail } = require('../middleware/email');
 const { createNotification } = require('../middleware/notifications');
@@ -485,6 +487,151 @@ router.patch('/matches/:id/ignore', async (req, res) => {
     res.json({ success: true, message: 'Match ignored.', match });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Unable to ignore match.' });
+  }
+});
+
+// ── Change Admin Credentials ──────────────────────────────────────
+// PATCH /api/admin/change-credentials
+// Requires the caller to already hold a valid admin session (authMiddleware
+// above) AND to re-supply their current username/password for verification.
+router.patch('/change-credentials', async (req, res) => {
+  const GENERIC_ERROR = 'Current username or password is incorrect.';
+
+  try {
+    const { currentUsername, currentPassword, newUsername, newPassword, confirmNewPassword } = req.body || {};
+
+    if (!currentUsername || !currentPassword) {
+      return res.status(400).json({ success: false, message: 'Current username and password are required.' });
+    }
+
+    const trimmedNewUsername = typeof newUsername === 'string' ? newUsername.trim() : '';
+    const hasNewUsername = trimmedNewUsername.length > 0;
+    const hasNewPassword = typeof newPassword === 'string' && newPassword.length > 0;
+
+    if (!hasNewUsername && !hasNewPassword) {
+      return res.status(400).json({ success: false, message: 'Enter a new username or a new password to update.' });
+    }
+
+    if (hasNewPassword) {
+      if (newPassword.length < 6) {
+        return res.status(400).json({ success: false, message: 'New password must be at least 6 characters long.' });
+      }
+      if (newPassword !== confirmNewPassword) {
+        return res.status(400).json({ success: false, message: 'New password and confirmation do not match.' });
+      }
+    }
+
+    // ── Verify current credentials ──────────────────────────────────
+    let adminDoc = await Admin.findOne({ username: currentUsername });
+
+    if (adminDoc) {
+      const matches = await bcrypt.compare(currentPassword, adminDoc.password);
+      if (!matches) {
+        return res.status(401).json({ success: false, message: GENERIC_ERROR });
+      }
+    } else {
+      // No DB record for this username yet — only acceptable if the caller is
+      // still on the hardcoded bootstrap account (i.e. no admin migrated yet).
+      const adminCount = await Admin.countDocuments();
+      const fallbackUsername = process.env.ADMIN_USERNAME || 'admin';
+      const fallbackPassword = process.env.ADMIN_PASSWORD || 'admin123';
+
+      const isFallbackMatch = adminCount === 0
+        && currentUsername === fallbackUsername
+        && currentPassword === fallbackPassword;
+
+      if (!isFallbackMatch) {
+        return res.status(401).json({ success: false, message: GENERIC_ERROR });
+      }
+    }
+
+    const finalUsername = hasNewUsername ? trimmedNewUsername : currentUsername;
+
+    // ── Prevent duplicate usernames ─────────────────────────────────
+    if (finalUsername !== currentUsername) {
+      const duplicate = await Admin.findOne({ username: finalUsername });
+      if (duplicate) {
+        return res.status(409).json({ success: false, message: 'That username is already taken.' });
+      }
+    }
+
+    const finalPasswordHash = hasNewPassword
+      ? await bcrypt.hash(newPassword, 10)
+      : (adminDoc ? adminDoc.password : await bcrypt.hash(currentPassword, 10));
+
+    if (adminDoc) {
+      adminDoc.username = finalUsername;
+      adminDoc.password = finalPasswordHash;
+      adminDoc.tokenVersion = (adminDoc.tokenVersion || 0) + 1;
+      await adminDoc.save();
+    } else {
+      // First time migrating off the hardcoded fallback account into the
+      // database — this updates the *existing* logical admin account, it
+      // does not create a second admin.
+      await Admin.create({
+        username: finalUsername,
+        password: finalPasswordHash,
+        role: 'admin',
+        tokenVersion: 1,
+      });
+    }
+
+    res.json({ success: true, message: 'Admin credentials updated successfully. Please log in again.' });
+  } catch (error) {
+    if (error?.code === 11000) {
+      return res.status(409).json({ success: false, message: 'That username is already taken.' });
+    }
+    console.error('Change credentials error:', error.message);
+    res.status(500).json({ success: false, message: 'Unable to update credentials right now.' });
+  }
+});
+
+// ── Campus Office Settings (public office info, admin-editable) ────
+// PATCH /api/admin/settings/office
+// Requires a valid admin session (authMiddleware above already enforces
+// 401/403). Upserts the single global Settings document — never creates a
+// second one. Kept entirely separate from private reporter contact fields.
+router.patch('/settings/office', async (req, res) => {
+  try {
+    const officeLocation = typeof req.body?.officeLocation === 'string' ? req.body.officeLocation.trim() : '';
+    const officeEmail = typeof req.body?.officeEmail === 'string' ? req.body.officeEmail.trim() : '';
+    const officePhone = typeof req.body?.officePhone === 'string' ? req.body.officePhone.trim() : '';
+
+    const errors = [];
+    if (!officeLocation) errors.push('Office location is required.');
+    if (!officeEmail) {
+      errors.push('Office email is required.');
+    } else if (!isValidEmail(officeEmail)) {
+      errors.push('Please provide a valid office email address.');
+    }
+    if (!officePhone) {
+      errors.push('Office phone is required.');
+    } else if (!/^[0-9+\-\s()]{7,20}$/.test(officePhone)) {
+      errors.push('Please provide a valid office phone number.');
+    }
+
+    if (errors.length > 0) {
+      return res.status(400).json({ success: false, message: errors[0], errors });
+    }
+
+    const updated = await Settings.findOneAndUpdate(
+      { singletonKey: 'global' },
+      { $set: { officeLocation, officeEmail, officePhone } },
+      { new: true, upsert: true, setDefaultsOnInsert: true, runValidators: true }
+    );
+
+    res.json({
+      success: true,
+      message: 'Campus Office information updated successfully.',
+      office: {
+        officeLocation: updated.officeLocation,
+        officeEmail: updated.officeEmail,
+        officePhone: updated.officePhone,
+      },
+    });
+  } catch (error) {
+    console.error('Update office settings error:', error.message);
+    res.status(500).json({ success: false, message: 'Unable to update office information right now.' });
   }
 });
 

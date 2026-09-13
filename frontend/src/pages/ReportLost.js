@@ -4,6 +4,8 @@ import toast from 'react-hot-toast';
 import PageLayout from '../components/layout/PageLayout';
 import ImageUpload from '../components/forms/ImageUpload';
 import OtpVerification from '../components/forms/OtpVerification';
+import CampusOfficeBox from '../components/common/CampusOfficeBox';
+import ValidProofNotice from '../components/common/ValidProofNotice';
 import { postLostItem } from '../utils/api';
 import { detectCategory, CATEGORIES, isBlockedLowValueItem, BLOCKED_ITEM_MESSAGE } from '../utils/helpers';
 
@@ -147,6 +149,10 @@ export default function ReportLost() {
                 </FormField>
               </div>
 
+              <p style={{ fontSize: 11.5, color: 'var(--text-dim)', margin: '-8px 0 0', lineHeight: 1.5 }}>
+                🔒 Your contact details are confidential and will only be visible to the authorized administrator.
+              </p>
+
               {/* OTP Verification (email only — phone is required above but not OTP-verified) */}
               <OtpVerification
                 email={form.email}
@@ -155,6 +161,9 @@ export default function ReportLost() {
               {errors.verification && !verificationToken && (
                 <p style={{ fontSize: 11, color: 'var(--danger)', marginTop: -12 }}>⚠ {errors.verification}</p>
               )}
+
+              <CampusOfficeBox />
+              <ValidProofNotice />
 
               <FormField label="Item Name" required error={errors.itemName}>
                 <input className={`input-field ${errors.itemName ? 'error' : ''}`} placeholder="e.g. Student ID Card, Blue Laptop" value={form.itemName} onChange={e => update('itemName', e.target.value)} />

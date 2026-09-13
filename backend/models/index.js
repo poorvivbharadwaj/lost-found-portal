@@ -73,7 +73,10 @@ const foundItemSchema = new mongoose.Schema({
 const adminSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, default: 'admin' }
+  role: { type: String, default: 'admin' },
+  // Bumped every time credentials change so previously-issued JWTs
+  // (which embed the tokenVersion at login time) stop being accepted.
+  tokenVersion: { type: Number, default: 0 }
 }, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);
@@ -126,4 +129,24 @@ const OtpVerification = mongoose.model('OtpVerification', otpSchema);
 const Notification = mongoose.model('Notification', notificationSchema);
 const PossibleMatch = mongoose.model('PossibleMatch', possibleMatchSchema);
 
-module.exports = { User, LostItem, FoundItem, Admin, OtpVerification, Notification, PossibleMatch };
+// Settings Model — a single global document holding publicly-visible
+// Campus Office contact information. This is intentionally kept completely
+// separate from private reporter contact fields (email/phone, contactEmail/
+// contactPhone) stored on LostItem/FoundItem above. Only one document of
+// this collection is ever created; it is looked up/created via a fixed
+// singleton key so repeated admin updates never create duplicate records.
+const settingsSchema = new mongoose.Schema({
+  singletonKey: { type: String, default: 'global', unique: true, required: true },
+  officeLocation: { type: String, trim: true, default: 'Room No 405, Campus Office' },
+  officeEmail: {
+    type: String,
+    trim: true,
+    default: 'lostfound@college.edu',
+    match: [/^\S+@\S+\.\S+$/, 'Please provide a valid office email'],
+  },
+  officePhone: { type: String, trim: true, default: '+91-XXXXXXXXXX' },
+}, { timestamps: true });
+
+const Settings = mongoose.model('Settings', settingsSchema);
+
+module.exports = { User, LostItem, FoundItem, Admin, OtpVerification, Notification, PossibleMatch, Settings };

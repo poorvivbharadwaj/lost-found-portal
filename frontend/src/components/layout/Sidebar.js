@@ -46,7 +46,7 @@ export default function Sidebar({ isOpen, onClose, activeCategory, onCategoryCha
       <div className={`sidebar ${isOpen ? 'open' : ''}`}>
         <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <img src="/logos/lf-logo-circle.png" alt="SNPSU" style={{ width: 36, height: 36, objectFit: 'contain', borderRadius: 8, flexShrink: 0 }} />
+            <img className="logo-hover" src="/logos/lf-logo-circle.png" alt="SNPSU" style={{ width: 36, height: 36, objectFit: 'contain', borderRadius: 8, flexShrink: 0 }} />
             <div>
               <p style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.2 }}>SNPSU</p>
               <p style={{ fontSize: 10, color: 'var(--text-dim)' }}>Sapthagiri NPS University</p>
@@ -115,7 +115,10 @@ export default function Sidebar({ isOpen, onClose, activeCategory, onCategoryCha
         </div>
 
         <div style={{ padding: 16, borderTop: '1px solid var(--border)', textAlign: 'center' }}>
-          <p style={{ fontSize: 11, color: 'var(--text-dim)' }}>Lost & Found · Team Udbhav</p>
+          <p style={{ fontSize: 11, color: 'var(--text-dim)' }}>
+            Lost & Found ·{' '}
+            <Link to="/team" onClick={onClose} className="footer-inline-link">Team Udbhav</Link>
+          </p>
           <p style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 2 }}>Room 405 · lostfound@college.edu</p>
         </div>
       </div>

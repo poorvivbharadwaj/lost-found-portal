@@ -51,7 +51,7 @@ export default function AdminLogin() {
         {/* Brand */}
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-            <img src="/logos/lf-logo-circle.png" alt="SNPSU" style={{ width: 64, height: 64, objectFit: 'contain', borderRadius: 12 }} />
+            <img className="logo-hover" src="/logos/lf-logo-circle.png" alt="SNPSU" style={{ width: 64, height: 64, objectFit: 'contain', borderRadius: 12 }} />
           </div>
           <h1 style={{ fontWeight: 700, fontSize: 22, color: 'var(--text-primary)', marginBottom: 4 }}>
             Admin Panel
@@ -83,7 +83,7 @@ export default function AdminLogin() {
               </label>
               <input
                 type="text"
-                placeholder="admin"
+                placeholder="Enter admin username"
                 value={form.username}
                 onChange={e => {
                   setForm(p => ({ ...p, username: e.target.value }));
@@ -101,7 +101,7 @@ export default function AdminLogin() {
               <div style={{ position: 'relative' }}>
                 <input
                   type={showPass ? 'text' : 'password'}
-                  placeholder="••••••••"
+                  placeholder="Enter password"
                   value={form.password}
                   onChange={e => {
                     setForm(p => ({ ...p, password: e.target.value }));
@@ -135,10 +135,6 @@ export default function AdminLogin() {
             >
               {loading ? 'Logging in…' : '🔐 Login to Admin Panel'}
             </button>
-
-            <p style={{ fontSize: 12, color: 'var(--text-dim)', textAlign: 'center' }}>
-              Default: admin / admin123
-            </p>
 
           </form>
         </div>

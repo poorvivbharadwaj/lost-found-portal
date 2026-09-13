@@ -26,22 +26,29 @@ router.post('/login', loginLimiter, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Username and password are required.' });
     }
 
-    // Check hardcoded admin first
-    const adminUsername = process.env.ADMIN_USERNAME || 'admin';
-    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+    // The hardcoded fallback only ever applies before any admin record has
+    // been created in the database (first-run bootstrap). Once an admin
+    // exists in MongoDB (e.g. after a credentials change), the database is
+    // the sole source of truth and the fallback is fully disabled.
+    const adminCount = await Admin.countDocuments();
 
-    if (username === adminUsername && password === adminPassword) {
-      const token = jwt.sign(
-        { id: 'hardcoded-admin', username, role: 'admin' },
-        JWT_SECRET,
-        { expiresIn: '24h' }
-      );
-      return res.json({ 
-        success: true, 
-        token, 
-        admin: { username, role: 'admin' },
-        message: 'Login successful'
-      });
+    if (adminCount === 0) {
+      const adminUsername = process.env.ADMIN_USERNAME || 'admin';
+      const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+
+      if (username === adminUsername && password === adminPassword) {
+        const token = jwt.sign(
+          { id: 'hardcoded-admin', username, role: 'admin', tokenVersion: 0 },
+          JWT_SECRET,
+          { expiresIn: '24h' }
+        );
+        return res.json({ 
+          success: true, 
+          token, 
+          admin: { username, role: 'admin' },
+          message: 'Login successful'
+        });
+      }
     }
 
     // Check DB admin
@@ -56,7 +63,7 @@ router.post('/login', loginLimiter, async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: admin._id, username: admin.username, role: admin.role },
+      { id: admin._id, username: admin.username, role: admin.role, tokenVersion: admin.tokenVersion || 0 },
       JWT_SECRET,
       { expiresIn: '24h' }
     );

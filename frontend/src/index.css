@@ -32,7 +32,11 @@
   --found-bg:      rgba(22, 101, 52, 0.08);
   --danger:        #DC2626;
   --match:         #6D28D9;
-  --nav-bg:        rgba(255, 255, 255, 0.90);
+  --nav-bg:        linear-gradient(135deg, #FBF2D9 0%, #F2E0AC 48%, #E8CC80 100%);
+  --nav-border:    rgba(150, 116, 32, 0.35);
+  --nav-shadow:    0 2px 14px rgba(150, 116, 32, 0.16);
+  --footer-bg:     linear-gradient(180deg, #F6ECD3 0%, #ECDBA9 100%);
+  --footer-border: rgba(150, 116, 32, 0.35);
   --shadow-sm:     0 1px 3px rgba(11, 31, 58, 0.06);
   --shadow-md:     0 4px 16px rgba(11, 31, 58, 0.08);
   --shadow-lg:     0 16px 44px rgba(11, 31, 58, 0.12);
@@ -66,7 +70,11 @@
   --found-bg:      rgba(74, 222, 128, 0.12);
   --danger:        #F87171;
   --match:         #A78BFA;
-  --nav-bg:        rgba(8, 17, 32, 0.90);
+  --nav-bg:        linear-gradient(135deg, #09182B 0%, #0C1F38 55%, #102542 100%);
+  --nav-border:    rgba(214, 169, 40, 0.45);
+  --nav-shadow:    0 2px 16px rgba(0, 0, 0, 0.45), 0 1px 0 rgba(214, 169, 40, 0.15);
+  --footer-bg:     linear-gradient(180deg, #0A1A2E 0%, #071426 100%);
+  --footer-border: rgba(214, 169, 40, 0.4);
   --shadow-sm:     0 1px 3px rgba(0, 0, 0, 0.35);
   --shadow-md:     0 4px 16px rgba(0, 0, 0, 0.45);
   --shadow-lg:     0 16px 44px rgba(0, 0, 0, 0.55);
@@ -168,6 +176,7 @@ code, pre, .mono {
 .badge-approved { background: var(--found-bg); color: var(--found); border: 1px solid rgba(22, 101, 52, 0.2); }
 .badge-rejected { background: var(--lost-bg); color: var(--lost); border: 1px solid rgba(185, 28, 28, 0.2); }
 .badge-archived { background: rgba(100, 116, 139, 0.12); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.2); }
+.badge-resolved { background: rgba(100, 116, 139, 0.12); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.2); }
 
 .input-field {
   width: 100%;
@@ -273,8 +282,9 @@ code, pre, .mono {
 .mobile-nav {
   display: none;
   position: fixed; top: 64px; left: 0; right: 0;
-  background: var(--nav-bg); backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
+  background: var(--nav-bg);
+  border-bottom: 1px solid var(--nav-border);
+  box-shadow: var(--nav-shadow);
   padding: 16px 20px; z-index: 25;
   flex-direction: column; gap: 8px;
   animation: slideDown 0.25s ease;
@@ -378,6 +388,36 @@ code, pre, .mono {
   transform: translateY(-6px);
 }
 
+/* ── Logo hover animation (college logo + portal logo) ───────────── */
+.logo-hover {
+  display: inline-flex;
+  transform: translateY(0) scale(1);
+  transition: transform 0.25s ease, filter 0.25s ease;
+  will-change: transform;
+}
+
+.logo-hover:hover,
+.logo-hover:focus-visible {
+  transform: translateY(-2px) scale(1.05);
+  filter: drop-shadow(0 6px 14px var(--accent-glow));
+}
+
+.logo-hover:active {
+  transform: translateY(-1px) scale(1.02);
+  filter: drop-shadow(0 3px 8px var(--accent-glow));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo-hover,
+  .logo-hover:hover,
+  .logo-hover:focus-visible,
+  .logo-hover:active {
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+}
+
 .logo-placeholder {
   display: flex;
   align-items: center;
@@ -421,10 +461,45 @@ code, pre, .mono {
 }
 
 .footer {
-  background: var(--bg-card);
-  border-top: 1px solid var(--border);
+  background: var(--footer-bg);
+  border-top: 1px solid var(--footer-border);
   padding: 48px 20px 24px;
   margin-top: auto;
+}
+
+/* ── Footer "Follow Us" social links ─────────────────────────────── */
+.footer-social-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  text-decoration: none;
+  padding: 4px 2px;
+  border-radius: 6px;
+  transition: color 0.2s, transform 0.2s;
+  min-height: 32px;
+}
+
+.footer-social-link:hover {
+  transform: translateX(2px);
+}
+
+.footer-social-link.is-placeholder {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.footer-inline-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--border-bright);
+  text-underline-offset: 2px;
+  transition: color 0.2s;
+}
+
+.footer-inline-link:hover,
+.footer-inline-link:focus-visible {
+  color: var(--accent);
 }
 
 .otp-input {

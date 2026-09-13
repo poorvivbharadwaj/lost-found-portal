@@ -7,6 +7,11 @@ const createTransporter = () => {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
+    // Some hosts/networks resolve smtp.gmail.com to an IPv6 address but
+    // don't actually have working outbound IPv6 routing, which fails with
+    // "ECONNREFUSED <ipv6 address>" even though the credentials/config are
+    // fine. Forcing IPv4 avoids that class of failure.
+    family: 4,
     // Some campus/corporate networks run SSL-inspecting proxies that swap
     // in their own certificate, which fails strict TLS validation with
     // "self-signed certificate in certificate chain". This is a network

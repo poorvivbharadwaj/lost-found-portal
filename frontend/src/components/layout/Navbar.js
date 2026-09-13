@@ -108,8 +108,8 @@ export default function Navbar({
       <nav style={{
         position: 'sticky', top: 0, zIndex: 30,
         background: 'var(--nav-bg)',
-        backdropFilter: 'blur(20px)',
-        borderBottom: '1px solid var(--border)',
+        borderBottom: '1px solid var(--nav-border)',
+        boxShadow: 'var(--nav-shadow)',
         transition: 'background 0.3s ease',
       }}>
         <div style={{ maxWidth: 1400, margin: '0 auto', padding: '0 16px' }}>
@@ -125,12 +125,12 @@ export default function Navbar({
               {mobileMenuOpen && !onMenuToggle ? <CloseIcon /> : <MenuIcon />}
             </button>
 
-            {/* College Logo */}
+            {/* Lost & Found Portal branding (top-left) */}
             <Link to="/" style={{ textDecoration: 'none', flexShrink: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <LogoPlaceholder type="college" width={38} height={38} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                <LogoPlaceholder type="brand" width="clamp(34px, 9vw, 46px)" height="clamp(34px, 9vw, 46px)" />
                 <div className="hide-sm">
-                  <p style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.2 }}>
+                  <p style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: 15, color: 'var(--text-primary)', lineHeight: 1.2 }}>
                     Lost <span style={{ color: 'var(--accent)' }}>&</span> Found
                   </p>
                   <p style={{ fontSize: 10, color: 'var(--text-dim)', letterSpacing: '0.05em' }}>Campus Portal</p>

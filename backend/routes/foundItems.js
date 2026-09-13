@@ -13,7 +13,11 @@ router.get('/', async (req, res) => {
     const filter = { approved: true };
     if (category && category !== 'all') filter.category = category;
 
+    // Reporter (finder) contact details are private — never returned through
+    // this public listing endpoint. Only a protected admin endpoint
+    // (/api/admin/found) may return them.
     const items = await FoundItem.find(filter)
+      .select('-contactEmail -contactPhone')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(parseInt(limit));
@@ -29,7 +33,9 @@ router.get('/', async (req, res) => {
 // GET /api/found/:id
 router.get('/:id', async (req, res) => {
   try {
-    const item = await FoundItem.findById(req.params.id);
+    // Public item-details route — finder's contact email/phone are excluded
+    // here for the same reason as above.
+    const item = await FoundItem.findById(req.params.id).select('-contactEmail -contactPhone');
     if (!item) return res.status(404).json({ success: false, message: 'Item not found' });
     res.json({ success: true, item });
   } catch (error) {

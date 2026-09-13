@@ -57,12 +57,25 @@ export const postFoundItem = (formData) =>
 export const searchItems = (params = {}) =>
   api.get('/search', { params });
 
+// ── Campus Office Settings ───────────────────────────────────────
+// Public, read-only — returns only official Campus Office info (never
+// private reporter contact details).
+export const getOfficeInfo = () =>
+  api.get('/settings/office');
+
+// Admin-only — update the single global Campus Office settings document.
+export const updateOfficeInfo = (payload) =>
+  api.patch('/admin/settings/office', payload);
+
 // ── Admin Auth ────────────────────────────────────────────────────
 export const adminLogin = (credentials) =>
   api.post('/auth/login', credentials);
 
 export const verifyToken = () =>
   api.get('/auth/verify');
+
+export const changeAdminCredentials = (payload) =>
+  api.patch('/admin/change-credentials', payload);
 
 // ── Admin Operations ──────────────────────────────────────────────
 export const getDashboardStats = () =>

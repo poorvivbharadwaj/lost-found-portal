@@ -8,16 +8,22 @@ import React, { useState } from 'react';
 const DEFAULT_SRC = {
   college: '/logos/college-logo.png',
   portal: '/logos/portal-logo.png',
+  // The actual Lost & Found Portal brand mark (navy-and-gold circular
+  // badge) — used for the top-left header/footer branding so it never
+  // gets confused with the college's own logo.
+  brand: '/logos/lf-logo-circle.png',
 };
 
 const LABELS = {
   college: 'College Logo',
   portal: 'L&F Logo',
+  brand: 'Lost & Found Portal Logo',
 };
 
 const DEFAULT_SIZES = {
   college: { width: 40, height: 40 },
   portal: { width: 32, height: 32 },
+  brand: { width: 38, height: 38 },
 };
 
 export default function LogoPlaceholder({ type = 'portal', src, width, height, className = '', rounded = true }) {
@@ -29,7 +35,7 @@ export default function LogoPlaceholder({ type = 'portal', src, width, height, c
   if (resolvedSrc && !errored) {
     return (
       <div
-        className={className}
+        className={`logo-hover ${className}`}
         style={{
           width: w, height: h, flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',

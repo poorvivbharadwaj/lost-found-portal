@@ -18,14 +18,16 @@ router.get('/', async (req, res) => {
       const lostFilter = { ...baseFilter };
       if (dateFrom) lostFilter.lostDate = { $gte: new Date(dateFrom) };
       if (dateTo) lostFilter.lostDate = { ...lostFilter.lostDate, $lte: new Date(dateTo) };
-      lostItems = await LostItem.find(lostFilter).sort({ createdAt: sortOrder }).limit(100);
+      // Search results are public — reporter email/phone are excluded.
+      lostItems = await LostItem.find(lostFilter).select('-email -phone').sort({ createdAt: sortOrder }).limit(100);
     }
 
     if (type !== 'lost') {
       const foundFilter = { ...baseFilter };
       if (dateFrom) foundFilter.foundDate = { $gte: new Date(dateFrom) };
       if (dateTo) foundFilter.foundDate = { ...foundFilter.foundDate, $lte: new Date(dateTo) };
-      foundItems = await FoundItem.find(foundFilter).sort({ createdAt: sortOrder }).limit(100);
+      // Search results are public — finder's contact email/phone are excluded.
+      foundItems = await FoundItem.find(foundFilter).select('-contactEmail -contactPhone').sort({ createdAt: sortOrder }).limit(100);
     }
 
     // Apply Fuse.js fuzzy search if a query is provided — case-insensitive
